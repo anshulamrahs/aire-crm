@@ -6,6 +6,8 @@ import Logo from '../../../assets/logos/Logo.png';
 import VerifyEmailDesign from '../../../assets/Designs/VerifyEmailDesign.png';
 import styled from 'styled-components';
 import VerificationInput from '../../verification-input/verification-input.component';
+import Loader from '../../reusable/loader.component';
+import { useLocation } from 'react-router-dom';
 
 const VerifyEmailContainer = styled.div`
   display: grid;
@@ -124,28 +126,48 @@ const Button = styled.button`
 `;
 
 
-
-
 const VerifyEmailForm = () => {
 
   const [code, setCode] = useState('')
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { executeRequest } = useAxios();
+  const location = useLocation();
 
   const handleComplete = (code) => {
     setCode(code);
   }
 
-  const sendVerifyToken = () => {
+  const sendVerifyToken = async () => {
     if(code != null || code !== '') {
-      navigate('/login/reset-password');
+      try {
+        setErrors({});
+        setLoading(true);
+        const response = await executeRequest({
+          method: 'POST',
+          url: APIS.verifyCode,
+          data: { code: code, email:location.state.email || {} },
+          headers: { 'Content-Type': 'application/json' },
+        });
+        if(response != null && response.message != null && response.message != ''){
+          const email = location.state.email;
+          navigate('/login/reset-password', {state:{email}});
+        }
+      } catch(error) {
+        setErrors({...errors, code:error.response.data.error});
+      } finally {
+        setLoading(false);
+      }
     }
-      
   }
 
   return (
     <VerifyEmailContainer>
       <VerifyEmailSection>
         <Container>
+          {loading && <Loader />}
+          {errors.code && <p style={{color: 'red', fontSize: '12px'}}>{errors.code}</p>}
           <Title>Verification code</Title>
           <Subtitle>We have sent an OTP to your email address</Subtitle>
           <VerificationInput length={4} onComplete={handleComplete} />

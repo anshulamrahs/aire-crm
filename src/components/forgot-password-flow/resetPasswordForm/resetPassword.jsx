@@ -7,6 +7,9 @@ import ForgetPasswordDesign from '../../../assets/Designs/ForgotPasswordDesign.p
 import Logo from '../../../assets/logos/Logo.png';
 import Input from '../../reusable/input.component';
 import Button from '../../reusable/button.component';
+import Loader from '../../reusable/loader.component';
+import { useLocation } from 'react-router-dom';
+import SuccessIcon from '../../reusable/success-icon';
 
 const ResetPasswordContainer = styled.div`
   display: grid;
@@ -120,12 +123,64 @@ const Text = styled.div`
   margin-bottom: 30px;
 `;
 
+const PopupOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+const PopupContainer = styled.div`
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 10px;
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+`;
+
+const PopupTitle = styled.h2`
+  font-size: 1.5rem;
+  color: #000;
+  margin-bottom: 1rem;
+`;
+
+const PopupMessage = styled.p`
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 2rem;
+`;
+
+const PopupButton = styled.button`
+  padding: 0.75rem 1.5rem;
+  background-color: #000;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  width: 500px;
+
+  &:hover {
+    background-color: #333;
+  }
+`;
+
 const ResetPasswordForm = () => {
   const [formData, setFormData] = useState({ newPassword:'',confirmPassword:''});
   const [errors, setErrors] = useState({});
   const [showNewPassword, setNewPassword] = useState(false);
   const [showConfirmPassword, setConfirmPassword] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { executeRequest } = useAxios();
+  const location = useLocation();
   
   const validateForm = () => {
     let formErrors = {};
@@ -136,59 +191,93 @@ const ResetPasswordForm = () => {
     }else if (formData.newPassword !== formData.confirmPassword) {
       formErrors.confirmPassword = 'Passwords do not match';
     }
-    console.log(formErrors);
     setErrors(formErrors);
-    console.log(errors);
-    console.log(Object.keys(formErrors).length === 0);
     return Object.keys(formErrors).length === 0;
   }
 
-  const resetPassword = (e) => {
+  const resetPassword = async (e) => {
     e.preventDefault();
     if(validateForm()){
-      navigate('/login')
+      try {
+        setLoading(true);
+        const newPassword = formData.newPassword;
+        const email = location.state.email;
+        const response = await executeRequest({
+          method: 'POST',
+          url: APIS.resetPassword,
+          data: {newPassword, email },
+          headers: { 'Content-Type': 'application/json' },
+        })
+        if(response != null && response.message != null && response.message != ''){
+          setShowPopup(true);
+        }
+      } catch(error) {
+        setErrors({...errors, reset:error.response.data.error})
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
+  const handleClosePopup = () => {
+      setShowPopup(false);
+      navigate('/login');
+  }
+
   return(
-    <ResetPasswordContainer>
-      <ResetPasswordSection>
-        <Container>
-          <Title>Setup New Password</Title>
-          <Subtitle>Have you already reset the password ?<LinkToSignIn href='/login'> Sign In</LinkToSignIn> </Subtitle>
-          <Form>
-          <LabelText>Password</LabelText>
+    <>
+      <ResetPasswordContainer>
+        <ResetPasswordSection>
+          <Container>
+            {loading && <Loader />}
+            {errors.reset && <p style={{color: 'red', fontSize: '12px'}}>{errors.reset}</p>}
+            <Title>Setup New Password</Title>
+            <Subtitle>Have you already reset the password ?<LinkToSignIn href='/login'> Sign In</LinkToSignIn> </Subtitle>
+            <Form>
+            <LabelText>Password</LabelText>
+                <Input
+                  type="password"
+                  placeholder="Enter new password"
+                  value={formData.newPassword}
+                  onChange={(value) => {setFormData({ ...formData, newPassword: value });setErrors({})}}
+                  name="newPassword"
+                  error={errors.newPassword}
+                  togglePasswordVisibility={() => setNewPassword(!showNewPassword)}
+                  showPassword={showNewPassword}
+                />
+            <LabelText>Confirm Password</LabelText>
               <Input
                 type="password"
-                placeholder="Enter new password"
-                value={formData.newPassword}
-                onChange={(value) => {setFormData({ ...formData, newPassword: value });setErrors({})}}
-                name="newPassword"
-                error={errors.newPassword}
-                togglePasswordVisibility={() => setNewPassword(!showNewPassword)}
-                showPassword={showNewPassword}
+                placeholder="Enter confirm password"
+                value={formData.confirmPassword}
+                onChange={(value) => {setFormData({ ...formData, confirmPassword: value });setErrors({})}}
+                name="confirmPassword"
+                error={errors.confirmPassword}
+                togglePasswordVisibility={() => setConfirmPassword(!showConfirmPassword)}
+                showPassword={showConfirmPassword}
               />
-          <LabelText>Confirm Password</LabelText>
-            <Input
-              type="password"
-              placeholder="Enter confirm password"
-              value={formData.confirmPassword}
-              onChange={(value) => {setFormData({ ...formData, confirmPassword: value });setErrors({})}}
-              name="confirmPassword"
-              error={errors.confirmPassword}
-              togglePasswordVisibility={() => setConfirmPassword(!showConfirmPassword)}
-              showPassword={showConfirmPassword}
-            />
-            <Text>Create a strong password. Must be at least 8 character.</Text>
-            <Button type="submit" onClick={(e) => resetPassword(e)} text='Create' />
-          </Form>
-        </Container>
-      </ResetPasswordSection>
-      <GraphicSection>
-        <Image src={ForgetPasswordDesign} />
-        <LogoImage src={Logo} />
-      </GraphicSection>
-    </ResetPasswordContainer>
+              <Text>Create a strong password. Must be at least 8 character.</Text>
+              <Button type="submit" onClick={(e) => resetPassword(e)} text='Create' />
+            </Form>
+          </Container>
+        </ResetPasswordSection>
+        <GraphicSection>
+          <Image src={ForgetPasswordDesign} />
+          <LogoImage src={Logo} />
+        </GraphicSection>
+      </ResetPasswordContainer>
+      {showPopup && (
+        <PopupOverlay>
+          <PopupContainer>
+            <PopupTitle>
+              <SuccessIcon />
+            </PopupTitle>
+            <PopupMessage>Password has been reset successfully , please login with new password</PopupMessage>
+            <PopupButton onClick={handleClosePopup}>Back To Login</PopupButton>
+          </PopupContainer>
+        </PopupOverlay>
+      )}
+    </>
   );
 };
 

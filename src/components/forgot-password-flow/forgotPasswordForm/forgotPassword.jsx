@@ -7,6 +7,8 @@ import ForgetPasswordDesign from '../../../assets/Designs/ForgotPasswordDesign.p
 import Logo from '../../../assets/logos/Logo.png';
 import Input from '../../reusable/input.component';
 import Button from '../../reusable/button.component';
+import Loader from '../../reusable/loader.component'; 
+import SuccessIcon from '../../reusable/success-icon';
 
 const ForgotPasswordContainer = styled.div`
   display: grid;
@@ -170,7 +172,9 @@ const ForgotPasswordForm = () => {
   const [formData, setFormData] = useState({ emailOrPhone: ''});
   const [errors, setErrors] = useState({});
   const [popupVisible, setPopupVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { executeRequest } = useAxios();
 
   
   const validateForm = () => {
@@ -184,23 +188,41 @@ const ForgotPasswordForm = () => {
     setErrors(formErrors);
     return Object.keys(formErrors).length === 0;
   }
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if(validateForm()){
-      setPopupVisible(true);
+
+      try{
+        setLoading(true);
+        const response = await executeRequest({
+          method: 'post',
+          url: APIS.sendVerificationCode,
+          data: formData,
+          headers: { 'Content-Type': 'application/json' },
+        });
+        if(response != null && response.message != null && response.message != '')
+          setPopupVisible(true);
+      } catch(error){
+        setErrors({...errors, email:error.response.data.error})
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
   const handleClosePopup = () => {
     setPopupVisible(false);
-    navigate('/login/verify-email');
+    const email = formData.emailOrPhone;
+    navigate('/login/verify-email', {state:{email}});
   };
 
   return(
     <ForgotPasswordContainer>
       <ForgotPasswordSection>
         <Container>
+          {loading && <Loader />}
+          {errors.email && <p style={{color: 'red', fontSize: '12px'}}>{errors.email}</p>}
           <Title>Forgot Password ?</Title>
           <Subtitle>Enter your email & instructions will be sent to you!</Subtitle>
           <Form>
@@ -209,7 +231,7 @@ const ForgotPasswordForm = () => {
                 type="text"
                 placeholder="Enter your email"
                 value={formData.emailOrPhone}
-                onChange={(value) => setFormData({ ...formData, emailOrPhone: value })}
+                onChange={(value) => {setFormData({ ...formData, emailOrPhone: value }); setErrors({...errors, emailOrPhone:null})}}
                 name="emailOrPhone"
                 error={errors.emailOrPhone}
               />
@@ -225,7 +247,9 @@ const ForgotPasswordForm = () => {
       {popupVisible && (
         <PopupOverlay>
           <PopupContainer>
-            <PopupTitle>Email Sent</PopupTitle>
+            <PopupTitle>
+              <SuccessIcon />
+            </PopupTitle>
             <PopupMessage>Please check your email for further instructions.</PopupMessage>
             <PopupButton onClick={handleClosePopup}>Okay got it!</PopupButton>
           </PopupContainer>
