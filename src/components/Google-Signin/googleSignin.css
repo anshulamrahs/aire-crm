@@ -1,0 +1,9 @@
+.google-sign-in-button {
+    background-color: #f0ffff;
+    color: black;
+}
+
+.google-sign-in-button:hover {
+    background-color: black;
+    color: white;
+}

@@ -1,0 +1,37 @@
+{
+    "trailingSlash": "auto",
+    "routes": [
+        {
+            "route":"/",
+            "rewrite": "index.html"
+        },
+        {
+            "route":"/login",
+            "rewrite": "index.html"
+        },
+        {
+            "route":"/register",
+            "rewrite": "index.html"
+        },
+        {
+            "route":"/home",
+            "rewrite": "index.html"
+        },
+        {
+            "route":"/login/forgot-password",
+            "rewrite": "index.html"
+        },
+        {
+            "route":"/login/verify-email/:email",
+            "rewrite": "index.html"
+        },
+        {
+            "route":"/login/reset-password/:email",
+            "rewrite": "index.html"
+        },
+        {
+            "route":"/leads",
+            "rewrite": "index.html"
+        }
+    ]
+}

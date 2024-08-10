@@ -1,0 +1,43 @@
+.custom-time-picker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .time-picker-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    width: 100%;
+  }
+  
+  .time-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.time-value {
+    font-size: 16px;
+    padding: 5px;
+    margin: 2px 0;
+    text-align: center;
+    width: 70px;
+    border-bottom: 1px solid #e7e7e7;
+    cursor: pointer;
+  }
+  
+  .time-value.current {
+    background-color: #f9f9f9;
+    font-weight: bold;
+  }
+  
+  .time-value.previous,
+  .time-value.next {
+    color: #888;
+  }
+  
