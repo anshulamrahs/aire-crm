@@ -9,10 +9,12 @@ const useAxios = () => {
     try {
       setLoading(true);
       setError(null);
+      console.log("coming here")
 
       // Make Axios request using the provided config
       const response = await axios(config);
       setLoading(false);
+      console.log(response);
       return response.data; // Return data from the response
     } catch (err) {
       setLoading(false);

@@ -13,9 +13,7 @@ const ClockIcon = styled(FaClock)`
   color: #000;
 `;
 
-const CustomTimePicker = () => {
-  const [time, setTime] = useState({ hour: 6, minute: 28, second: 55, period: 'PM' });
-  const [formattedTime, setFormattedTime] = useState('');
+const CustomTimePicker = ({time, formattedTime, handleScroll, togglePeriod, setFormattedTime}) => {
 
   useEffect(() => {
     const formatTime = `${time.hour.toString().padStart(2, '0')}:${time.minute
@@ -24,26 +22,6 @@ const CustomTimePicker = () => {
     setFormattedTime(formatTime);
   }, [time]);
 
-  const handleScroll = (unit, direction) => {
-    setTime((prevTime) => {
-      let newValue = prevTime[unit];
-      if (direction === 'up') {
-        newValue = (newValue + 1) % (unit === 'hour' ? 12 : 60);
-        if (unit === 'hour' && newValue === 0) newValue = 12;
-      } else {
-        newValue = (newValue - 1 + (unit === 'hour' ? 12 : 60)) % (unit === 'hour' ? 12 : 60);
-        if (unit === 'hour' && newValue === 0) newValue = 12;
-      }
-      return { ...prevTime, [unit]: newValue };
-    });
-  };
-
-  const togglePeriod = () => {
-    setTime((prevTime) => ({
-      ...prevTime,
-      period: prevTime.period === 'AM' ? 'PM' : 'AM',
-    }));
-  };
 
   return (
     <div className="custom-time-picker-container">

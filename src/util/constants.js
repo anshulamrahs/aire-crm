@@ -8,3 +8,18 @@ export const addNewLead = {
     budget: "number",
     proffession: "text"
 }
+
+export const sortOptions = {
+    date: {
+        otn : 'asc',
+        nto : 'desc'
+    },
+    score: {
+        lth : 'asc',
+        htl : 'desc'
+    },
+    budget : {
+        lth : 'asc',
+        htl : 'desc'
+    }
+}

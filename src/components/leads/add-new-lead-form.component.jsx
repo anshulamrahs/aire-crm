@@ -1,7 +1,9 @@
 // src/components/forms/AddNewLeadForm.js
-import React from 'react';
+import React, { useState } from 'react';
 import Input from '../reusable/input.component';
 import styled from 'styled-components';
+import { useScrollTrigger } from '@mui/material';
+import MiniLoader from '../reusable/miniLoader';
 
 const RegisterSection = styled.div`
   display: flex;
@@ -29,26 +31,92 @@ const LabelText = styled.label`
 `;
 
 
-const AddNewLeadForm = () => {
+const AddNewLeadForm = ({setErrors, setFormData, errors, formData, loading, data}) => {
+
   return (
     <RegisterSection>
         <FormContainer>
+        {loading && <MiniLoader />}
             <LabelText>Name</LabelText>
-            <Input label="Name" type="text" placeholder="Enter your name" />
+            <Input
+                label="Name"
+                type="text"
+                placeholder="Enter your name"
+                value={formData.name}
+                onChange={(value) => {setFormData({ ...formData, name: value });setErrors({...errors, name:''})}}
+                name="name"
+                error={errors.name}
+              />
             <LabelText>Contact</LabelText>
-            <Input label="Phone Number" type="tel" placeholder="Enter your phone number" />
+            <Input 
+              label="Phone Number"
+              type="tel"
+              placeholder="Enter your phone number"
+              value={formData.contact}
+              onChange={(value) => {setFormData({ ...formData, contact: value });setErrors({...errors, contact:''})}}
+              name="name"
+              error={errors.contact}
+            />
             <LabelText>Email</LabelText>
-            <Input label="Email" type="email" placeholder="Enter your email" />
+            <Input 
+              label="Email" 
+              type="email" 
+              placeholder="Enter your email" 
+              value={formData.email}
+              onChange={(value) => {setFormData({ ...formData, email: value });setErrors({...errors, email:''})}}
+              name="email"
+              error={errors.email}  
+            />
             <LabelText>Source</LabelText>
-            <Input label="Source" type="text" placeholder="Enter source" />
+            <Input 
+              label="Source" 
+              type="text" 
+              placeholder="Enter source" 
+              value={formData.source}
+              onChange={(value) => {setFormData({ ...formData, source: value });setErrors({...errors, source:''})}}
+              name="source"
+              error={errors.source}   
+            />
             <LabelText>City</LabelText>
-            <Input label="City" type="text" placeholder="Enter your city" />
+            <Input 
+              label="City" 
+              type="text" 
+              placeholder="Enter your city" 
+              value={formData.city}
+              onChange={(value) => {setFormData({ ...formData, city: value });setErrors({...errors, city:''})}}
+              name="city"
+              error={errors.city} 
+            />
             <LabelText>Address</LabelText>
-            <Input label="Address" type="text" placeholder="Enter your address" />
+            <Input 
+              label="Address" 
+              type="text" 
+              placeholder="Enter your address" 
+              value={formData.address}
+              onChange={(value) => {setFormData({ ...formData, address: value });setErrors({...errors, address:''})}}
+              name="address"
+              error={errors.address} 
+            />
             <LabelText>Budget</LabelText>
-            <Input label="Budget" type="text" placeholder="Enter your budget" />
+            <Input 
+              label="Budget" 
+              type="text" 
+              placeholder="Enter your budget" 
+              value={formData.budget}
+              onChange={(value) => {setFormData({ ...formData, budget: value });setErrors({...errors, budget:''})}}
+              name="email"
+              error={errors.budget} 
+            />
             <LabelText>Profession</LabelText>
-            <Input label="Profession" type="text" placeholder="Enter your profession" />
+            <Input 
+              label="Profession" 
+              type="text" 
+              placeholder="Enter your profession" 
+              value={formData.profession}
+              onChange={(value) => {setFormData({ ...formData, profession: value });setErrors({...errors, profession:''})}}
+              name="email"
+              error={errors.profession} 
+            />
         </FormContainer>
     </RegisterSection>
   );

@@ -1,5 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
+import { useSelector } from 'react-redux';
+import { selectLeadDetails } from '../../redux/features/leads/leadSelectors';
 
 const ProfileContainer = styled.div`
   display: flex;
@@ -28,15 +30,17 @@ const ProfileTitle = styled.p`
 `;
 
 const ProfileSection = () => {
+  const lead = useSelector(selectLeadDetails);
   return (
     <ProfileContainer>
       <ProfileImage src="https://via.placeholder.com/100" alt="Profile" />
       <ProfileDetails>
-        <ProfileName>Clayton Daugherty III</ProfileName>
-        <ProfileTitle>Business owner</ProfileTitle>
+        <ProfileName>{lead ? lead.name : ''}</ProfileName>
+        <ProfileTitle>{lead ? lead.notes : ''}</ProfileTitle>
       </ProfileDetails>
     </ProfileContainer>
   );
 };
+
 
 export default ProfileSection;

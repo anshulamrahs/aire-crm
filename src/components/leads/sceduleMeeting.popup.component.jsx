@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { FaTimes, FaCalendarAlt } from 'react-icons/fa';
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/style.css';
 import {isBefore, isToday } from 'date-fns'
 import CustomTimePicker from '../reusable/timepicker.component';
+import { APIS } from '../../util/config';
+import useAxios from '../../util/useAxios';
+import MiniLoader from '../reusable/miniLoader';
 
 
 
@@ -136,20 +139,83 @@ const CancelButton = styled(Button)`
     background-color: #e7e7e7;
   }
 `;
+const PopupSubHeader = styled.div`
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+`;
 
-const ScheduleMeetingPopup = ({ onClose }) => {
+const ScheduleMeetingPopup = ({ onClose, leadId }) => {
   const [selectedDate, setSelectedDate] = useState(null);
-  const [time, setTime] = useState({ hour: '06', minute: '28', second: '55', period: 'PM' });
+  const [time, setTime] = useState({ hour: '12', minute: '00', second: '00', period: 'AM' });
+  const [formattedDate, setFormatedDate] = useState(null)
+  const [timeFor, setTimeFor] = useState({ hour: 6, minute: 28, second: 55, period: 'PM' });
+  const [formattedTime, setFormattedTime] = useState('');
+  const [activity, setActivity] = useState('');
+  const { executeRequest } = useAxios();
+  const [lead] = useState(leadId);
+  const [errors,setErrors] = useState({});
+  const [data,setData] = useState(null);
+  const [loading,setLoading] = useState(false);
+
+  const handleScroll = (unit, direction) => {
+    setTimeFor((prevTime) => {
+      let newValue = prevTime[unit];
+      if (direction === 'up') {
+        newValue = (newValue + 1) % (unit === 'hour' ? 12 : 60);
+        if (unit === 'hour' && newValue === 0) newValue = 12;
+      } else {
+        newValue = (newValue - 1 + (unit === 'hour' ? 12 : 60)) % (unit === 'hour' ? 12 : 60);
+        if (unit === 'hour' && newValue === 0) newValue = 12;
+      }
+      return { ...prevTime, [unit]: newValue };
+    });
+  };
+
+  const togglePeriod = () => {
+    setTimeFor((prevTime) => ({
+      ...prevTime,
+      period: prevTime.period === 'AM' ? 'PM' : 'AM',
+    }));
+  };
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
+    console.log(date);
   };
+  
 
+  const handleActivityChange = (e) => {
+    setActivity(e.target.value);
+  }
+  
+  const scheduleMeeting = async () => {
+    const options = {month: 'long', day:'numeric', year:'numeric'}
+    const formattedDate = selectedDate.toLocaleDateString('en-US', options);
+    const meetingData = {
+      date: selectedDate,
+      time: timeFor,
+      activity: activity,
+      leadId:lead
+    }
 
-  const handleTimeChange = (event) => {
-    const { name, value } = event.target;
-    setTime({ ...time, [name]: value });
-  };
+    try{
+      setLoading(true);
+      const response = await executeRequest({
+        method: 'post',
+        url: APIS.scheduleMeeting,
+        data: meetingData
+      })
+      setData(response.message);
+      setErrors({});
+    } catch(error) {
+      console.log(error);
+      setErrors({...errors, meetingError:error.response.data.message});
+    } finally {
+      setLoading(false);
+    }
+
+  }
 
   return (
     <PopupOverlay>
@@ -158,14 +224,23 @@ const ScheduleMeetingPopup = ({ onClose }) => {
           <PopupTitle>Schedule Meeting</PopupTitle>
           <CloseIcon onClick={onClose} />
         </PopupHeader>
+        {loading && <MiniLoader />}
+        {console.log(errors)}
+        {errors && errors.meetingError && <PopupSubHeader>
+          <p style={{color: 'red', fontSize: '12px', padding: '20px'}}>{errors.meetingError}</p>
+        </PopupSubHeader>}
+        {data && <PopupSubHeader>
+          <p style={{color: '#4CAF50', fontSize: '12px', padding: '20px'}}>{data}</p>
+        </PopupSubHeader>}
         <Form>
           <FormGroup>
             <Label>Select Activity</Label>
-            <Select>
-              <option>Call</option>
-              <option>Follow Up</option>
-              <option>Visit</option>
-              <option>Meeting</option>
+            <Select id="Meetings" value={activity}  onChange={handleActivityChange}>
+              <option value="">--Select an Option</option>
+              <option value="Call">Call</option>
+              <option value="Follow Up">Follow Up</option>
+              <option value="Visit">Visit</option>
+              <option value="Meeting">Meeting</option>
             </Select>
           </FormGroup>
           <FormGroup>
@@ -177,7 +252,7 @@ const ScheduleMeetingPopup = ({ onClose }) => {
                 readOnly
                 onClick={() => document.getElementById('daypicker').focus()}
               />
-              <CalendarIcon />
+              <CalendarIcon  />
             </div>
             <DayPicker
               id="daypicker"
@@ -203,11 +278,11 @@ const ScheduleMeetingPopup = ({ onClose }) => {
             />
           </FormGroup>
           <FormGroup>
-            <CustomTimePicker />
+            <CustomTimePicker formattedTime={formattedTime} time={timeFor} handleScroll={handleScroll} togglePeriod={togglePeriod} setFormattedTime={setFormattedTime} />
           </FormGroup>
         </Form>
         <ButtonContainer>
-        <Button type="submit">Submit</Button>
+        <Button type="submit" onClick={scheduleMeeting}>Submit</Button>
         <CancelButton type="button" onClick={onClose}>
             Cancel
         </CancelButton>

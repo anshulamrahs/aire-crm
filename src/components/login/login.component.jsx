@@ -10,6 +10,8 @@ import Logo from '../../assets/logos/Logo.png';
 import Input from '../reusable/input.component';
 import Button from '../reusable/button.component';
 import Loader from '../reusable/loader.component';
+import { useDispatch } from 'react-redux';
+import { setUser } from '../../redux/features/user/userSlice';
 
 const LoginContainer = styled.div`
   display: grid;
@@ -165,6 +167,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { executeRequest } = useAxios();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   
   const validateForm = () => {
     let formErrors = {};
@@ -195,14 +198,14 @@ const Login = () => {
           localStorage.setItem('token', response);
         }
         setLoading(false);
-        navigate('/home');
+        dispatch(setUser(response.user))
+        navigate('/leads');
       } catch (error) {
         console.log(error)
         setErrors({...errors, loginError : error.response.data.error})
         setLoading(false);
         console.log(errors.loginError);
       }
-
     }
   };
 

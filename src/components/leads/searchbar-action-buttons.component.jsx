@@ -4,6 +4,9 @@ import styled from 'styled-components';
 import { FaWhatsapp, FaEnvelope, FaShareAlt, FaTrash, FaPlus, FaSearch, FaTimes } from 'react-icons/fa';
 import Popup from '../reusable/popup.component';
 import AddNewLeadForm from '../leads/add-new-lead-form.component';
+import useAxios from '../../util/useAxios';
+import { APIS } from '../../util/config';
+import { usePopup } from '../reusable/contextPopup.component';
 
 const SearchBarContainer = styled.div`
   display: flex;
@@ -88,8 +91,66 @@ const AddButton = styled(Button)`
 `;
 
 const SearchBar = () => {
+  const { isPopup, togglePopup } = usePopup();
   const [query, setQuery] = useState('');
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const { executeRequest } = useAxios();
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState(null)
+  const [formData, setFormData] = useState({name:'', email:'', contact:'', source:'', city: '', address:'', budget:'', profession:''});
+  const [errors, setErrors] = useState({});
+
+  const validateForm = (formData) => {
+    let formErros = {};
+  
+    // Validate Name
+    if (!formData.name.trim()) {
+      formErros.name = 'Name is required';
+    }
+  
+    // Validate Contact (Phone Number)
+    const phoneRegex = /^[0-9]{10}$/; // Adjust the regex based on your phone number format requirements
+    if (!formData.contact.trim()) {
+      formErros.contact = 'Contact number is required';
+    } else if (!phoneRegex.test(formData.contact)) {
+      formErros.contact = 'Enter a valid 10-digit contact number';
+    }
+  
+    // Validate Email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email.trim()) {
+      formErros.email = 'Email is required';
+    } else if (!emailRegex.test(formData.email)) {
+      formErros.email = 'Enter a valid email address';
+    }
+  
+    // Validate Source
+    if (!formData.source.trim()) {
+      formErros.source = 'Source is required';
+    }
+  
+    // Validate City
+    if (!formData.city.trim()) {
+      formErros.city = 'City is required';
+    }
+  
+    // Validate Address
+    if (!formData.address.trim()) {
+      formErros.address = 'Address is required';
+    }
+  
+    // Validate Budget
+    if (!formData.budget.trim()) {
+      formErros.budget = 'Budget is required';
+    }
+  
+    // Validate Profession
+    if (!formData.profession.trim()) {
+      formErros.profession = 'Profession is required';
+    }
+    setErrors(formErros);
+    return Object.keys(formErros).length === 0;
+  };
 
   const handleInputChange = (e) => {
     setQuery(e.target.value);
@@ -105,6 +166,28 @@ const SearchBar = () => {
 
   const handlePopupClose = () => {
     setIsPopupOpen(false);
+  };
+
+  const addNewLead = async () => {
+    if(validateForm(formData)){
+      try {
+        setLoading(true);
+        setData(null);
+        const response = await executeRequest({
+          method: 'post',
+          url: APIS.addNewLead,
+          data: formData
+        })
+        if(response.leadId) {
+          setData(response.message);
+          setFormData({name:'', email:'', contact:'', source:'', city: '', address:'', budget:'', profession:''});
+        }
+      } catch(error) {
+        setErrors({...errors, newLeadError:error.response.data.error})
+      } finally {
+        setLoading(false);
+      }
+    }
   };
 
   return (
@@ -137,8 +220,18 @@ const SearchBar = () => {
           onCancel={handlePopupClose}
           buttonText="Create Lead"
           subTitle="Property Details"
+          onAddNewLead={addNewLead}
+          validateForm={validateForm}
+          errors={errors}
+          data={data}
         >
-          <AddNewLeadForm  />
+          <AddNewLeadForm 
+          errors={errors}
+          formData={formData}
+          setErrors={setErrors}
+          setFormData={setFormData}
+          loading={loading}          
+          />
         </Popup>
       )}
     </>

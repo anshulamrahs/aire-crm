@@ -2,6 +2,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { FaTimes } from 'react-icons/fa';
+import { data } from '../../util/dummyData';
 
 const PopupOverlay = styled.div`
   position: fixed;
@@ -103,7 +104,7 @@ const SubText = styled.p`
 
 `;
 
-const Popup = ({ title, children, onClose, onCancel, buttonText, subTitle }) => {
+const Popup = ({ title, children, onClose, onCancel, buttonText, subTitle, onAddNewLead, errors, data}) => {
   return (
     <PopupOverlay>
       <PopupContainer>
@@ -111,6 +112,12 @@ const Popup = ({ title, children, onClose, onCancel, buttonText, subTitle }) => 
           <PopupTitle>{title}</PopupTitle>
           <CloseIcon style={{borderRadius: '50%', border:'2px solid black'}} onClick={onClose} />
         </PopupHeader>
+        {errors && errors.registerError && <PopupSubHeader>
+          <p style={{color: 'red', fontSize: '12px', padding: '20px'}}>{errors.newLeadError}</p>
+        </PopupSubHeader>}
+        {data && <PopupSubHeader>
+          <p style={{color: '#4CAF50', fontSize: '12px', padding: '20px'}}>{data}</p>
+        </PopupSubHeader>}
         {subTitle && (
             <PopupSubHeader>
                 <SubText>
@@ -120,7 +127,7 @@ const Popup = ({ title, children, onClose, onCancel, buttonText, subTitle }) => 
         )}
         <PopupContent>{children}</PopupContent>
         <ButtonContainer>
-            <Button type="button">{buttonText}</Button>
+            <Button type="button" onClick={onAddNewLead}>{buttonText}</Button>
             <CancelButton type="button" onClick={onCancel}>Cancel</CancelButton>
         </ButtonContainer>
       </PopupContainer>

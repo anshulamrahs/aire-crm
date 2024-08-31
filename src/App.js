@@ -35,7 +35,6 @@ function App() {
       const routeRegex = new RegExp(`^${route.replace(/:[^\s/]+/g, '([\\w-]+)')}$`);
       return routeRegex.test(location.pathname);
     });
-    console.log(location.pathname);
     setIsAuthPage(isAuth);
   }, [location.pathname]);
   console.log(isAuthPage,isLandingPage)
@@ -43,7 +42,7 @@ function App() {
     <AppContainer>
       {isLandingPage ? <NavBar /> : isAuthPage ? '' : <Header />}
       <Outlet />
-      { isAuthPage ? '' : <Footer /> }
+      { isAuthPage ? '' : '' }
     </AppContainer>
   );
 }

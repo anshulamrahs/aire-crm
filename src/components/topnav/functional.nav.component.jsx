@@ -2,6 +2,9 @@
 import React from 'react';
 import styled from 'styled-components';
 import { NavLink } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { selectCurrentUser } from '../../redux/features/user/userSelectors';
+import { getColorFromLetter } from '../../util/colorUtils';
 
 const HeaderContainer = styled.header`
   display: flex;
@@ -45,10 +48,16 @@ const UserAvatar = styled.div`
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #ccc;
+  background-color: ${(props) => props.bgColor};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 18px;
 `;
 
 const Header = () => {
+  const currentUser = useSelector(selectCurrentUser);
   return (
     <HeaderContainer>
       <Logo>Logo</Logo>
@@ -63,8 +72,10 @@ const Header = () => {
         <NavLink to="/content" activeClassName="active">Content</NavLink>
       </NavLinks>
       <UserInfo>
-        <UserAvatar />
-        <span>Krat Chadha</span>
+        <UserAvatar bgColor={currentUser && getColorFromLetter(currentUser.name[0])}>
+          {currentUser && currentUser.name[0].toUpperCase()}
+        </UserAvatar>
+        <span>{currentUser && currentUser.name}</span>
       </UserInfo>
     </HeaderContainer>
   );

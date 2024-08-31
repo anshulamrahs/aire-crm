@@ -1,10 +1,16 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import ProfileSection from './profileSection.component';
 import LeadInformation from './leadInformation.component';
 import StatusBar from './statusBar.component';
 import ActivityLog from './activityLog.component';
 import ScheduleMeetingButton from './scheduleMeeting.component';
+import { Link, useParams } from 'react-router-dom';
+import useAxios from '../../util/useAxios';
+import { APIS } from '../../util/config';
+import { useDispatch } from 'react-redux';
+import { setLeadDetails } from '../../redux/features/leads/filterSlice';
+import { PopupProvider } from '../reusable/contextPopup.component';
 
 const LeadInfoPageContainer = styled.div`
   display: flex;
@@ -41,7 +47,7 @@ const MainContent = styled.div`
 const LeftColumn = styled.div`
   flex: 1;
   margin-right: 20px;
-  width: 25%;
+  width: 20%;
   @media (max-width: 768px) {
     margin-right: 0;
   }
@@ -51,24 +57,57 @@ const RightColumn = styled.div`
   flex: 2;
   display: flex;
   flex-direction: column;
-  width: 75%;
+  width: 80%;
 `;
 
 const LeadInfoPage = () => {
+  const { leadId } = useParams();
+  const [leadDetails, setLead] = useState(null);
+  const { executeRequest } = useAxios();
+  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+
+  const fetchLeadDetails = useCallback(async()=>{
+    try {
+      setLoading(true);
+      const response = await executeRequest({
+        method: 'post',
+        url: APIS.getLeadDetails,
+        data: {
+          leadId: leadId
+        }
+      })
+      setLead(response)
+      dispatch(setLeadDetails({ response }));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  },[leadId]) 
+
+    
+  useEffect(()=>{
+    fetchLeadDetails();
+  },[fetchLeadDetails])
   return (
     <LeadInfoPageContainer>
       <ContentContainer>
+        <h2 style={{marginBottom: '0px'}}>Leads</h2>
+        <span style={{textDecoration: 'none', color:'black', marginBottom:'10px'}}><Link style={{textDecoration:'none', color:'black'}} to={'/leads'}>leads</Link>/Lead Information</span>
         <Header>
           <ProfileSection />
-          <ScheduleMeetingButton />
+          <ScheduleMeetingButton leadId={leadId} />
         </Header>
         <MainContent>
           <LeftColumn>
             <LeadInformation />
           </LeftColumn>
           <RightColumn>
-            <StatusBar />
-            <ActivityLog />
+          <PopupProvider>
+              <StatusBar />
+          </PopupProvider>
+            <ActivityLog leadId={leadId} />
           </RightColumn>
         </MainContent>
       </ContentContainer>

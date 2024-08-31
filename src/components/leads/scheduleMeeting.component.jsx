@@ -3,6 +3,8 @@ import styled from 'styled-components';
 import { FaWhatsapp, FaEnvelope, FaComment } from 'react-icons/fa';
 import RadialProgressBar from '../progress-bar/radial-progress';
 import ScheduleMeetingPopup from './sceduleMeeting.popup.component';
+import { useSelector } from 'react-redux';
+import { selectLeadDetails } from '../../redux/features/leads/leadSelectors';
 
 const ActionButtons = styled.div`
   display: flex;
@@ -37,8 +39,9 @@ const AddButton = styled(Button)`
   }
 `;
 
-const ScheduleMeetingButton = () => {
+const ScheduleMeetingButton = ({leadId}) => {
   const [isOpenPopup, setIsOpenPopup] = useState(false);
+  const leadDetails = useSelector(selectLeadDetails);
 
   const handleOpenPopup = ()=> {
     setIsOpenPopup(true);
@@ -54,10 +57,10 @@ const ScheduleMeetingButton = () => {
         <Button><FaEnvelope fill='#4e4c4c' /></Button>
         <Button><FaComment fill='#4e4c4c' /></Button>
         <AddButton onClick={handleOpenPopup}>Schedule Meeting</AddButton>
-        <RadialProgressBar percentage={68} />
+        <RadialProgressBar percentage={leadDetails ? leadDetails.score : 0} />
       </ActionButtons>
       {
-        isOpenPopup && <ScheduleMeetingPopup onClose={handleClosePopup} />
+        isOpenPopup && <ScheduleMeetingPopup leadId={leadId} onClose={handleClosePopup} />
       }
     </>
   );

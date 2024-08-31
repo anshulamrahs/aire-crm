@@ -2,6 +2,9 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { FaAngleLeft, FaAngleRight } from 'react-icons/fa';
+import { useDispatch, useSelector } from 'react-redux';
+import { setPage } from '../../redux/features/leads/filterSlice';
+import { selectLimit, selectPage, selectTotalLeads, selectTotalPages } from '../../redux/features/leads/leadSelectors';
 
 const PaginationContainer = styled.div`
   display: flex;
@@ -39,19 +42,37 @@ const InfoText = styled.span`
 
 const Pagination = () => {
   const [activePage, setActivePage] = useState(1);
+  const dispatch = useDispatch();
+  const page = useSelector(selectPage);
+  const totalPages = useSelector(selectTotalPages);
+  const totalLeads = useSelector(selectTotalLeads);
+  const limit = useSelector(selectLimit);
+  const pagesArray = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   const handlePageChange = (page) => {
     setActivePage(page);
+    dispatch(setPage({ page }));
   };
+
+  const getEntriesRange = (pageNo, limit, totalLeads) => {
+    // Calculate the start index for the current page
+    const startIndex = (pageNo - 1) * limit + 1;
+  
+    // Calculate the end index for the current page
+    const endIndex = Math.min(pageNo * limit, totalLeads);
+  
+    // Return the range as a string
+    return `Showing ${startIndex} to ${endIndex} of ${totalLeads} entries`;
+  }
 
   return (
     <PaginationContainer>
-      <InfoText>showing 1 to 10 of 10 entries</InfoText>
+      <InfoText>{getEntriesRange(page,limit,totalLeads)}</InfoText>
       <PageButtonContainer>
         <PageButton onClick={() => handlePageChange(activePage - 1)} disabled={activePage === 1}>
           <FaAngleLeft />
         </PageButton>
-        {[1, 2, 3, 4, 5].map((page) => (
+        {pagesArray.map((page) => (
           <PageButton
             key={page}
             active={page === activePage}
@@ -60,7 +81,7 @@ const Pagination = () => {
             {page}
           </PageButton>
         ))}
-        <PageButton onClick={() => handlePageChange(activePage + 1)} disabled={activePage === 5}>
+        <PageButton onClick={() => handlePageChange(activePage + 1)} disabled={activePage === pagesArray.length}>
           <FaAngleRight />
         </PageButton>
       </PageButtonContainer>

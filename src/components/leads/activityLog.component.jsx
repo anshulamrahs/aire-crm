@@ -1,9 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import TaskTable from './task-table.component';
 import { FaPlus } from 'react-icons/fa';
 import Popup from '../reusable/popup.component';
 import AssignNewTask from './assignTask.popup.component';
+import { useSelector } from 'react-redux';
+import { selectLeadDetails } from '../../redux/features/leads/leadSelectors';
+import formatDate from '../../util/formatDate';
+import { data } from '../../util/dummyData';
+import { selectCurrentUser } from '../../redux/features/user/userSelectors';
+import useAxios from '../../util/useAxios';
+import { APIS } from '../../util/config';
 
 const ActivityLogContainer = styled.div`
   background: white;
@@ -121,10 +128,73 @@ const ActionItem = styled.div`
   }
 `;
 
-const ActivityLog = () => {
+const ActivityLog = ({leadId}) => {
   const [activeTab, setActiveTab] = React.useState('Activity Log');
   const [isPopupOpen, setIsOpenPopup] = React.useState(false);
   const [actionPopup, setActionPopup] = React.useState(false);
+  const leadDetails = useSelector(selectLeadDetails);
+  const currentUser = useSelector(selectCurrentUser);
+  const { executeRequest } = useAxios();
+  const [formData, setFormData] = useState({
+    taskOwner: currentUser.name,
+    lead: leadId,
+    listing: '',
+    task: '',
+    message: '',
+    deadlineDate: '',
+    priority: '',
+    status: '',
+  });
+  const [errors, setErrors] = useState({});
+  const [data, setData] = useState(null);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+    // Clear error message when user starts typing
+    setErrors({
+      ...errors,
+      [name]: '',
+    });
+  };
+
+  const validate = () => {
+    let formErrors = {};
+
+    if (!formData.taskOwner) formErrors.taskOwner = 'Task Owner is required';
+    if (!formData.lead) formErrors.lead = 'Lead is required';
+    if (!formData.listing) formErrors.listing = 'Listing is required';
+    if (!formData.task) formErrors.task = 'Task is required';
+    if (!formData.message) formErrors.message = 'Message is required';
+    if (!formData.deadlineDate) formErrors.deadlineDate = 'Deadline Date is required';
+    if (!formData.priority) formErrors.priority = 'Priority is required';
+    if (!formData.status) formErrors.status = 'Status is required';
+
+    setErrors(formErrors);
+
+    return Object.keys(formErrors).length === 0; // Return true if no errors
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log(APIS.assignNewTask);
+    if (validate()) {
+      console.log('Form Data:', formData);
+      try{
+        const response = await executeRequest({
+          method:'post',
+          url: APIS.assignNewTask,
+          data: formData
+        });
+        console.log(response);
+      } catch(error){
+        console.log(error);
+      }
+    }
+  };
 
   const handlePopupOpen = ()=> {
     setIsOpenPopup(true);
@@ -163,42 +233,14 @@ const ActivityLog = () => {
         </TabsContainer>
         {activeTab === 'Activity Log' ? (
           <>
-            <LogItem>
-              <LogMessage>You have a new message. Could you provide more details about the context or the specific message you're referring to?</LogMessage>
-              <LogTime>28/06/2020 10:18:21 am</LogTime>
-            </LogItem>
-            <LogItem>
-              <LogMessage>You have a new message. Could you provide more details about the context or the specific message you're referring to?</LogMessage>
-              <LogTime>28/06/2020 10:18:21 am</LogTime>
-            </LogItem>
-            <LogItem>
-              <LogMessage>You have a new message. Could you provide more details about the context or the specific message you're referring to?</LogMessage>
-              <LogTime>28/06/2020 10:18:21 am</LogTime>
-            </LogItem>
-            <LogItem>
-              <LogMessage>You have a new message. Could you provide more details about the context or the specific message you're referring to?</LogMessage>
-              <LogTime>28/06/2020 10:18:21 am</LogTime>
-            </LogItem>
-            <LogItem>
-              <LogMessage>You have a new message. Could you provide more details about the context or the specific message you're referring to?</LogMessage>
-              <LogTime>28/06/2020 10:18:21 am</LogTime>
-            </LogItem>
-            <LogItem>
-              <LogMessage>You have a new message. Could you provide more details about the context or the specific message you're referring to?</LogMessage>
-              <LogTime>28/06/2020 10:18:21 am</LogTime>
-            </LogItem>
-            <LogItem>
-              <LogMessage>Team Lead opportunity created</LogMessage>
-              <LogTime>28/06/2020 10:18:21 am</LogTime>
-            </LogItem>
-            <LogItem>
-              <LogMessage>You have a new message. Could you provide more details about the context or the specific message you're referring to?</LogMessage>
-              <LogTime>Tomorrow</LogTime>
-            </LogItem>
-            <LogItem>
-              <LogMessage>Admin Log note 1</LogMessage>
-              <LogTime>55 min ago</LogTime>
-            </LogItem>
+          {
+            leadDetails && leadDetails.activityLog.map(activity => (
+              <LogItem>
+                <LogMessage>{activity.notes}</LogMessage>
+                <LogTime>{formatDate(activity.date)}</LogTime>
+              </LogItem>
+            ))
+          }
           </>
         ) : (
           <TaskTable />
@@ -210,8 +252,11 @@ const ActivityLog = () => {
           onClose={handlePopupClose}
           onCancel={handlePopupClose}
           buttonText="New Task"
+          onAddNewLead={handleSubmit}
+          errors={errors}
+          data={data}
         >
-          <AssignNewTask  />
+          <AssignNewTask formData={formData} errors={errors} handleChange={(value) => handleChange(value)} leadId={leadId}  />
         </Popup>
       )}
     </>

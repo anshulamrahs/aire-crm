@@ -1,6 +1,8 @@
 import React from 'react';
 import styled from 'styled-components';
 import { FaPhone, FaEnvelope, FaGlobe, FaRupeeSign, FaStickyNote } from 'react-icons/fa';
+import { useSelector } from 'react-redux';
+import { selectLeadDetails } from '../../redux/features/leads/leadSelectors';
 
 const LeadInfoContainer = styled.div`
   background: white;
@@ -40,6 +42,7 @@ const LeadInfoText = styled.div`
 `;
 
 const LeadInformation = () => {
+  const leadDetails = useSelector(selectLeadDetails);
   return (
     <LeadInfoContainer>
       <LeadInfoItem>
@@ -48,7 +51,7 @@ const LeadInformation = () => {
         </IconContainer>
         <LeadInfoText>
           <div>Contact No</div>
-          <div>98760 29596</div>
+          <div>{leadDetails ? leadDetails.contact : 'Does not Exist'}</div>
         </LeadInfoText>
       </LeadInfoItem>
       <LeadInfoItem>
@@ -57,7 +60,7 @@ const LeadInformation = () => {
         </IconContainer>
         <LeadInfoText>
           <div>Email</div>
-          <div>akshitpabbir9@gmail.com</div>
+          <div>{leadDetails ? leadDetails.email : 'Does not Exist'}</div>
         </LeadInfoText>
       </LeadInfoItem>
       <LeadInfoItem>
@@ -66,7 +69,7 @@ const LeadInformation = () => {
         </IconContainer>
         <LeadInfoText>
           <div>Source</div>
-          <div>Google Ads</div>
+          <div>{leadDetails ? leadDetails.source : 'Does not Exist'}</div>
         </LeadInfoText>
       </LeadInfoItem>
       <LeadInfoItem>
@@ -75,7 +78,7 @@ const LeadInformation = () => {
         </IconContainer>
         <LeadInfoText>
           <div>Budget</div>
-          <div>$500,000</div>
+          <div>{leadDetails ? leadDetails.budget : 'Does not Exist'}</div>
         </LeadInfoText>
       </LeadInfoItem>
       <LeadInfoItem>
@@ -84,7 +87,7 @@ const LeadInformation = () => {
         </IconContainer>
         <LeadInfoText>
           <div>Notes</div>
-          <div>Facebook Lead via AVGEstat...</div>
+          <div>{leadDetails ? leadDetails.notes : 'Does not Exist'}</div>
         </LeadInfoText>
       </LeadInfoItem>
     </LeadInfoContainer>

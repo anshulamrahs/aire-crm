@@ -2,6 +2,10 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { data } from '../../util/dummyData';
+import { useSelector } from 'react-redux';
+import { selectLeadDetails } from '../../redux/features/leads/leadSelectors';
+import { formatDateToDDMMYYYY } from '../../util/formatDate';
+import { getColorFromLetter } from '../../util/colorUtils';
 
 const TableContainer = styled.div`
   width: 98%;
@@ -99,6 +103,7 @@ const ActionItem = styled.div`
 const TaskTable = () => {
   const [selectedLeads, setSelectedLeads] = useState([]);
   const [visiblePopup, setVisiblePopup] = useState(null);
+  const leadDetails = useSelector(selectLeadDetails);
 
 
   const handleSelectAll = (event) => {
@@ -127,6 +132,21 @@ const TaskTable = () => {
     }
   };
 
+  const getPriorityColor = (priority)=> {
+    switch (priority) {
+      case 'Medium':
+        return '#448519';
+      case 'High':
+        return '#D8B13C';
+      case 'Low':
+        return '#DD5D52';
+      case 'In Progress':
+        return '#D8B13C';
+      default:
+        return '#000000'; // Default color if priority is not matched
+    }
+  }
+
   return (
     <TableContainer>
       <Table>
@@ -149,7 +169,7 @@ const TaskTable = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.map((task, index) => (
+          {leadDetails && leadDetails.assignedTasks.map((task, index) => (
             <TableRow key={index}>
               <TableCell>
                 <input
@@ -159,13 +179,22 @@ const TaskTable = () => {
                 />
               </TableCell>
               <TableCell>
+              <ImageContainer>
+                {task.image ? (
+                  <Image src={task.image} alt={task.taskOwner} />
+                ) : (
+                  <InitialCircle bgColor={getColorFromLetter(task.taskOwner[0])}>
+                    {task.taskOwner[0]}
+                  </InitialCircle>
+                )}
                 {task.taskOwner}
+              </ImageContainer>
               </TableCell>
-              <TableCell>{task.listing}</TableCell>
+              <TableCell>{task.listing.description}</TableCell>
               <TableCell>{task.task}</TableCell>
-              <TableCell>{task.dueDate}</TableCell>
+              <TableCell>{formatDateToDDMMYYYY(task.deadlineDate)}</TableCell>
               <TableCell>{task.status}</TableCell>
-              <TableCell>{task.priority}</TableCell>
+              <TableCell>{<span style={{color: getPriorityColor(task.priority)}}>{task.priority}</span>}</TableCell>
               <TableCell>
                 <ActionContainer>
                   <ActionButton onClick={() => handleActionClick(index)}>...</ActionButton>
